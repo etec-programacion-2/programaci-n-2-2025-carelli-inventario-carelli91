@@ -4,12 +4,15 @@
 package org.example
 
 /*Elegí una data class porque simplifica la gestión de datos, generando automáticamente métodos como toString, equals y copy, y facilita comparar y manipular objetos.*/
-data class Productos (val id: Int, val name: String, val desc: String, val price: Double, val stock: Int) {
+data class Products (
+    val id: Int, 
+    val name: String, 
+    val desc: String, 
+    val price: Double, 
+    val stock: Int,
+    val category: Category
+    ) {
 
 }
 
 
-
-fun main() {
-  
-}
