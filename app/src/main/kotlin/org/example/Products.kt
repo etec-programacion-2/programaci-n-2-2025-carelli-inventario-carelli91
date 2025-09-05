@@ -13,6 +13,22 @@ data class Products (
     val category: Category
     ) {
 
+
+    fun increaseStock(amount: Int) {
+        stock = stock + amount
+        println("Stock updated, actual amount: ${stock}")
+
+    }
+
+
+    fun decreaseStock(amount: Int) {
+        if (amount<0) {
+            println("Error: stock cannot be negative.")
+        }
+
+    }
+    
+
 }
 
 
