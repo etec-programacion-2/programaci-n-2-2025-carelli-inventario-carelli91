@@ -4,10 +4,7 @@
 package org.example
 
 fun main() {
-    val p1 = Products(1, "Notebook", "Laptop de 15 pulgadas", 1200.0, 10, Category.ELECTRONICS)
-    val p2 = Products(2, "Camisa", "Camisa de algodón", 25.0, 50, Category.CLOTHING)
+    val apple = Products(123, "Apple", "Organic", 0.43, 20, Category.FOOD )
+    apple.decreaseStock(apple.increaseStock(5), "apples")
 
-    println(p1)
-    println(p2)
-  
 }

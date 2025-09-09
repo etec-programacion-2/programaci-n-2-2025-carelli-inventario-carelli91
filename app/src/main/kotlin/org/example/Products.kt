@@ -9,9 +9,28 @@ data class Products (
     val name: String, 
     val desc: String, 
     val price: Double, 
-    val stock: Int,
+    var stock: Int,
     val category: Category
     ) {
+
+
+    fun increaseStock(amount: Int): Int {
+        stock = stock + amount
+        return stock
+
+    }
+
+
+    fun decreaseStock(amount: Int, product: String) {
+        if (amount<0) {
+            println("Error: stock cannot be negative.")
+        }
+        else {
+            println("Stock updated. Actual stock of ${product}: ${amount}.")
+        }
+
+    }
+    
 
 }
 
