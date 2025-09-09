@@ -4,7 +4,7 @@
 package org.example
 
 fun main() {
-    Products(123, "Apple", "Organic", 0.43, 20, category.FOOD )
-    Products.increaseStock(5)
-    
+    val apple = Products(123, "Apple", "Organic", 0.43, 20, Category.FOOD )
+    apple.decreaseStock(apple.increaseStock(5), "apples")
+
 }
