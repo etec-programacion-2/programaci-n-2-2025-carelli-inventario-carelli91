@@ -47,3 +47,8 @@ tasks.named<Test>("test") {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
 }
+
+tasks.named<JavaExec>("run") {
+    // Esta línea es la clave: habilita la entrada estándar
+    standardInput = System.`in`
+}

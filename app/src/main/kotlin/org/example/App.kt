@@ -3,8 +3,53 @@
  */
 package org.example
 
-fun main() {
-    val apple = Products(123, "Apple", "Organic", 0.43, 20, Category.FOOD )
-    apple.decreaseStock(apple.increaseStock(5), "apples")
+import java.util.Scanner
 
+fun main() {
+
+    println(
+        """
+        ╔════════════════════╗
+        ║     INVENTORY      ║
+        ╠════════════════════╣
+        1️⃣  Add product       ║
+        2️⃣  Remove product    ║
+        3️⃣  Search product    ║
+        4️⃣  Show inventory    ║
+        5️⃣  Increase stock    ║
+        6️⃣  Decrease stock    ║
+        0️⃣  Exit              ║
+        ╚════════════════════╝
+        """.trimIndent()
+    )
+
+    print("Choose an option: ")
+    val option = readLine()?.toIntOrNull() ?: -1
+
+    when(option) {
+        1 -> println("Adding product...")
+        2 -> println("Removing product...")
+        3 -> println("Searching product...")
+        4 -> println("Showing inventory...")
+        5 -> println("Increasing stock...")
+        6 -> println("Decreasing stock...")
+        0 -> println("Exiting...")
+        else -> println("Invalid option")
+    }
+
+    val inventory = Inventory()
+
+    val apple = Products(123, "Apple", "Organic", 0.43, 20, Category.FOOD)
+    val hammer = Products(456, "Hammer", "Steel hammer", 5.99, 15, Category.ELECTRONICS)
+
+    inventory.addProduct(apple)
+    inventory.addProduct(hammer)
+
+    inventory.showInventory()
+
+    val searching = inventory.searchProduct(123)
+    println("Buscado: $searching")
+
+    inventory.deleteProduct(123)
+    inventory.showInventory()
 }
