@@ -103,4 +103,9 @@ class Inventory {
             }
         }
     }
+
+    fun getAllProducts(): List<Products> {
+        return products.values.toList()
+    }
+
 }

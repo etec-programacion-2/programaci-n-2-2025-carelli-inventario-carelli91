@@ -20,6 +20,8 @@ fun main() {
         4️⃣  Show inventory    ║
         5️⃣  Increase stock    ║
         6️⃣  Decrease stock    ║
+        7️⃣  Search Category   ║
+        8️⃣  Low Stock         ║
         0️⃣  Exit              ║
         ╚════════════════════╝
         """.trimIndent()
@@ -29,14 +31,18 @@ fun main() {
     val option = readLine()?.toIntOrNull() ?: -1
 
     val inventory = Inventory()
+    val inventoryService = InventoryService(inventory)
+
 
     when(option) {
         1 -> inventory.addProduct()
         2 -> inventory.deleteProduct()
         3 -> inventory.searchProduct()
         4 -> inventory.showInventory()
-        5 -> println("Increasing stock...")
-        6 -> println("Decreasing stock...")
+        5 -> println("c")
+        6 -> println(".")
+        7 -> inventoryService.getProductsPerCategory()
+        8 -> inventoryService.getLowStockProducts()
         0 -> println("Exiting...")
         else -> println("Invalid option")
     }

@@ -1,1 +1,1 @@
-123,apple,vegetable,1.0,10,FOOD
+123,apple,fruit,1.0,32,FOOD
