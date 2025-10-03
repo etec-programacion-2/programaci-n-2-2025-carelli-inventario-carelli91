@@ -4,12 +4,21 @@
 package org.example
 
 
-enum class Category {
-    ELECTRONICS,
-    CARE,
-    FOOD,
-    CANDIES,
-    CLOTHING,
-    OTHERS
+enum class Category(val displayName: String, val emoji: String) {
+    FRESH_FOOD("Fresh Food", "🥦"),
+    NON_PERISHABLE_FOOD("Non-Perishable Food", "🥫"),
+    DAIRY("Dairy & Derivatives", "🧀"),
+    BEVERAGES("Beverages", "🍫"),
+    CLEANING("Cleaning & Household", "🧼"),
+    PERSONAL_CARE("Personal Care", "🧴"),
+    PET_CARE("Pet Care", "🐶"),
+    BABY_CARE("Baby Care", "👶"),
+    HOME_ESSENTIALS("Home Essentials", "🕯"),
+    BEAUTY("Beauty & Cosmetics", "🌸"),
+    STATIONERY("Stationery & School Supplies", "📚"),
+    TOOLS("Tools", "🛠"),
+    CLOTHING("Clothing & Accessories", "👕"),
+    PHARMACY("Pharmacy & Health", "💊");
 
+    override fun toString(): String = "$emoji $displayName"
 }
