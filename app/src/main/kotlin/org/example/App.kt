@@ -3,44 +3,7 @@
  */
 package org.example
 
-import java.util.Scanner
-
 fun main() {
-
-    
-
-    println(
-        """
-        ╔════════════════════╗
-        ║     INVENTORY      ║
-        ╠════════════════════╣
-        1️⃣  Add product       ║
-        2️⃣  Remove product    ║
-        3️⃣  Search product    ║
-        4️⃣  Show inventory    ║
-        5️⃣  Increase stock    ║
-        6️⃣  Decrease stock    ║
-        0️⃣  Exit              ║
-        ╚════════════════════╝
-        """.trimIndent()
-    )
-
-    print("Choose an option: ")
-    val option = readLine()?.toIntOrNull() ?: -1
-
-    val inventory = Inventory()
-
-    when(option) {
-        1 -> inventory.addProduct()
-        2 -> inventory.deleteProduct()
-        3 -> inventory.searchProduct()
-        4 -> inventory.showInventory()
-        5 -> println("Increasing stock...")
-        6 -> println("Decreasing stock...")
-        0 -> println("Exiting...")
-        else -> println("Invalid option")
-    }
-
-
-
+    val app = InventoryApp()
+    app.run()
 }

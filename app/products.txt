@@ -1,1 +1,7 @@
-123,apple,vegetable,1.0,10,FOOD
+123,apple,fruit,1.0,30,FOOD
+234,dress,female clothe,75.0,10,CLOTHING
+345,deodorant,for bad smell,4.5,26,CARE
+456,headphones,sony headphones,200.0,4,ELECTRONICS
+567,hammer,basic tool,15.0,13,TOOLS
+678,takis,spicy fry,3.5,46,CANDIES
+789,juice,natural orange juice,2.8,64,OTHERS
