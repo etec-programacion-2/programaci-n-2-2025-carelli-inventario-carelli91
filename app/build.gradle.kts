@@ -9,7 +9,7 @@ plugins {
     // Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
     alias(libs.plugins.kotlin.jvm)
 
-    // Apply the application plugin to add support for building a CLI application in Java.
+    // Apply the application plugin to add support for building a CLI or GUI application in Java.
     application
 }
 
@@ -39,9 +39,9 @@ java {
 }
 
 application {
-    // Define the main class for the application.
-    mainClass = "org.example.AppKt"
+    mainClass = "org.example.InventoryGUIKt"
 }
+
 
 tasks.named<Test>("test") {
     // Use JUnit Platform for unit tests.
@@ -49,6 +49,6 @@ tasks.named<Test>("test") {
 }
 
 tasks.named<JavaExec>("run") {
-    // Esta línea es la clave: habilita la entrada estándar
+    // Habilita la entrada estándar (aunque Swing no la usa, no afecta)
     standardInput = System.`in`
 }

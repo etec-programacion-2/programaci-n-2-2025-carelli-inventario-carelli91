@@ -10,83 +10,45 @@ class Inventory {
         loadFromFile()
     }
 
-    fun addProduct() {
-        println("Enter product ID: ")
-        val id = readLine()!!.toInt()
-
-        println("Enter product name: ")
-        val name = readLine()!!
-
-        println("Enter product description: ")
-        val desc = readLine()!!
-
-        println("Enter product price: ")
-        val price = readLine()!!.toDouble()
-
-        println("Enter product stock: ")
-        val stock = readLine()!!.toInt()
-
-        val category = CategoryManager.selectCategory() ?: return
-
-        val product = Products(id, name, desc, price, stock, category)
-        products[id] = product
-        println("Product added: $product")
-
+    fun addProduct(product: Products) {
+        // Validar que el ID tenga 5 dígitos
+        if (product.id < 10000 || product.id > 99999) {
+            throw IllegalArgumentException("Product ID must be a 5-digit number")
+        }
+        
+        // Validar que el ID no exista
+        if (products.containsKey(product.id)) {
+            throw IllegalArgumentException("Product ID already exists")
+        }
+        
+        // Validar que el nombre no exista
+        if (isProductNameExists(product.name)) {
+            throw IllegalArgumentException("Product name already exists")
+        }
+        
+        products[product.id] = product
         saveToFile()
     }
 
-    fun deleteProduct() {
-        println("Enter product ID to delete: ")
-        val id = readLine()!!.toInt()
-
-        if (products.remove(id) != null) {
-            println("Product with ID $id removed.")
-            saveToFile()
-        } else {
-            println("Product with ID $id not found.")
-        }
+    fun removeProductById(id: Int): Boolean {
+        val removed = products.remove(id)
+        if (removed != null) saveToFile()
+        return removed != null
     }
 
-    fun searchProduct() {
-        println("Enter product ID to search: ")
-        val id = readLine()!!.toInt()
-
+    fun updateProductStock(id: Int, newStock: Int): Boolean {
         val product = products[id]
-        if (product != null) {
-            println("Found: $product")
-        } else {
-            println("Product with ID $id not found.")
-        }
+        return if (product != null) {
+            product.stock = newStock
+            saveToFile()
+            true
+        } else false
     }
 
-    fun increaseProductStock() {
-        println("Enter product ID to increase stock: ")
-        val id = readLine()!!.toInt()
-        
-        val product = products[id]
-        if (product != null) {
-            println("Enter amount to increase: ")
-            val amount = readLine()!!.toInt()
-            product.increaseStock(amount)
-            saveToFile()
-        } else {
-            println("Product with ID $id not found.")
-        }
-    }
+    fun getProductById(id: Int): Products? = products[id]
 
-    fun decreaseProductStock() {
-        println("Enter product ID to decrease stock: ")
-        val id = readLine()!!.toInt()
-        
-        val product = products[id]
-        if (product != null) {
-            println("Enter amount to decrease: ")
-            val amount = readLine()!!.toInt()
-            product.decreaseStock(amount)
-            saveToFile()
-        } else {
-            println("Product with ID $id not found.")
-        }
+    fun isProductNameExists(name: String): Boolean {
+        return products.values.any { it.name.equals(name, ignoreCase = true) }
     }
 
     private fun saveToFile() {
@@ -101,7 +63,6 @@ class Inventory {
     private fun loadFromFile() {
         val file = File(fileName)
         if (!file.exists()) return
-
         file.forEachLine { line ->
             val parts = line.split(",")
             if (parts.size == 6) {
@@ -115,15 +76,10 @@ class Inventory {
                         Category.valueOf(parts[5])
                     )
                     products[product.id] = product
-                } catch (e: IllegalArgumentException) {
-                    println("Warning: Unknown category ${parts[5]} for product ${parts[1]}")
-                }
+                } catch (_: Exception) { }
             }
         }
     }
 
-    fun getAllProducts(): List<Products> {
-        return products.values.toList()
-    }
-
+    fun getAllProducts(): List<Products> = products.values.toList()
 }
