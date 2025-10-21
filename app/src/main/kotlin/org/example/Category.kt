@@ -18,7 +18,8 @@ enum class Category(val displayName: String, val emoji: String) {
     STATIONERY("Stationery & School Supplies", "📚"),
     TOOLS("Tools", "🛠"),
     CLOTHING("Clothing & Accessories", "👕"),
-    PHARMACY("Pharmacy & Health", "💊");
+    PHARMACY("Pharmacy & Health", "💊"),
+    OTHERS("Others", "➕");
 
     override fun toString(): String = "$emoji $displayName"
 }

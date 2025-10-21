@@ -3,10 +3,8 @@
 10003,Vitamin C,Immune system supplement,12.75,30,PHARMACY
 10004,Bandages,Wound care protection,3.2,120,PHARMACY
 10005,Cough Syrup,Relieves dry cough,9.8,25,PHARMACY
-10006,Antacid,For stomach relief,6.45,40,PHARMACY
 10007,Allergy Pills,Seasonal allergy relief,15.3,35,PHARMACY
 20001,Apples,Red fresh fruit,1.2,150,FRESH_FOOD
-20002,Bananas,Tropical fruit,0.8,200,FRESH_FOOD
 20003,Lettuce,Fresh green vegetable,1.5,80,FRESH_FOOD
 20004,Tomatoes,Red juicy vegetable,1.8,95,FRESH_FOOD
 20005,Carrots,Orange root vegetable,1.1,110,FRESH_FOOD
@@ -99,3 +97,4 @@
 95005,Winter Gloves,Warm protection,5.5,60,CLOTHING
 95006,Scarf,Winter wool scarf,9.25,40,CLOTHING
 10000,apple,nose,1.0,132,FRESH_FOOD
+20002,Bananas,Tropical fruit,0.5,190,FRESH_FOOD
