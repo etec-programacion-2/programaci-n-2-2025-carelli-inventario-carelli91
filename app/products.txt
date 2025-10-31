@@ -3,7 +3,7 @@
 10003,Vitamin C,Immune system supplement,12.75,30,PHARMACY
 10004,Bandages,Wound care protection,3.2,118,PHARMACY
 10005,Cough Syrup,Relieves dry cough,9.8,25,PHARMACY
-10007,Allergy Pills,Seasonal allergy relief,15.3,35,PHARMACY
+10007,Allergy Pills,Seasonal allergy relief,15.3,33,PHARMACY
 20001,Apples,Red fresh fruit,1.2,145,FRESH_FOOD
 20003,Lettuce,Fresh green vegetable,1.5,80,FRESH_FOOD
 20004,Tomatoes,Red juicy vegetable,1.8,95,FRESH_FOOD
@@ -39,7 +39,7 @@
 50006,Energy Drink,Boost energy drink,2.25,60,BEVERAGES
 50007,Apple Juice,Sweet fruit juice,2.15,50,BEVERAGES
 50008,Lemonade,Refreshing drink,1.95,70,BEVERAGES
-60001,Laundry Detergent,For washing clothes,8.95,25,CLEANING
+60001,Laundry Detergent,For washing clothes,8.95,22,CLEANING
 60002,Dish Soap,For washing dishes,2.25,85,CLEANING
 60003,All Purpose Cleaner,Multi-surface cleaner,3.5,40,CLEANING
 60004,Glass Cleaner,For windows and mirrors,2.75,50,CLEANING
@@ -62,10 +62,10 @@
 80005,Cat Litter,Absorbent litter,8.25,25,PET_CARE
 80006,Fish Food,Aquarium fish food,2.15,80,PET_CARE
 90001,Baby Diapers,Newborn size,12.95,20,BABY_CARE
-90002,Baby Wipes,Cleaning wipes,3.75,60,BABY_CARE
+90002,Baby Wipes,Cleaning wipes,3.75,59,BABY_CARE
 90003,Baby Formula,Milk powder,15.5,15,BABY_CARE
-90004,Baby Shampoo,Gentle for babies,4.25,35,BABY_CARE
-90005,Baby Lotion,Moisturizing cream,3.95,40,BABY_CARE
+90004,Baby Shampoo,Gentle for babies,4.25,34,BABY_CARE
+90005,Baby Lotion,Moisturizing cream,3.95,39,BABY_CARE
 90006,Pacifier,Soothing for babies,2.5,75,BABY_CARE
 91001,Light Bulbs,LED energy saving,3.25,45,HOME_ESSENTIALS
 91002,Batteries,AA alkaline batteries,5.75,80,HOME_ESSENTIALS
@@ -79,8 +79,8 @@
 92004,Face Cream,Anti-aging moisturizer,15.75,20,BEAUTY
 92005,Nail Polish,Colorful nail paint,4.5,50,BEAUTY
 92006,Eye Shadow,Color palette,11.25,25,BEAUTY
-93001,Notebooks,College ruled,2.5,100,STATIONERY
-93002,Pens,Blue ink ballpoint,1.25,200,STATIONERY
+93001,Notebooks,College ruled,2.5,90,STATIONERY
+93002,Pens,Blue ink ballpoint,1.25,194,STATIONERY
 93003,Pencils,Wooden #2 pencils,0.75,150,STATIONERY
 93004,Markers,Colorful set,3.95,45,STATIONERY
 93005,Stapler,Office stapler,4.5,30,STATIONERY

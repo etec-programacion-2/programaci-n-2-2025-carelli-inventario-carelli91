@@ -1,621 +1,429 @@
 package org.example
 
 import java.awt.*
+import java.awt.event.ActionEvent
+import java.awt.event.ActionListener
 import javax.swing.*
+import javax.swing.border.EmptyBorder
+import javax.swing.event.ListSelectionListener
 
 fun main() {
-    SwingUtilities.invokeLater { InventoryGUI().createAndShow() }
+    val inventory = Inventory()
+    val gui = InventoryGUI(inventory)
+    gui.show()
 }
 
-class InventoryGUI {
-    private val inventory = Inventory()
-    private val shoppingCart = ShoppingCart(inventory)
-    private val frame = JFrame("Inventory Management System")
-    private val productListModel = DefaultListModel<Products>()
-    private val productList = JList(productListModel)
-    private val infoLabel = JLabel("Select a product to view details.")
-    private val btnEditProduct = JButton("Edit Product")
-    private val btnDelete = JButton("Delete Product")
-    private val btnViewDescription = JButton("View Description")
-    private val btnAddToCart = JButton("Add to Cart")
+class InventoryGUI(private val inventory: InventoryRepository) {
+    private val cart = ShoppingCart(inventory)
+    private val frame = JFrame("Product Inventory 📦 Management System")
+    private val listModel = DefaultListModel<Products>()
+    private val list = JList(listModel)
 
-    fun createAndShow() {
+    // Components
+    private val addToCartBtn = JButton("🛒 Add to Cart")
+    private val increaseStockBtn = JButton("➕ Increase Stock")
+    private val decreaseStockBtn = JButton("➖ Decrease Stock")
+    private val searchField = JTextField(15)
+    private val sortComboBox = JComboBox(arrayOf("id", "name", "price", "stock", "category"))
+    private val filterComboBox = JComboBox(Category.values().map { it.displayName }.toTypedArray().plus("Show All"))
+    private val addBtn = JButton("➕ Add Product")
+    private val editBtn = JButton("✏️ Edit Product")
+    private val delBtn = JButton("❌ Delete Product")
+    private val viewCartBtn = JButton("🛒 View Cart") 
+
+    // --- Main Setup ---
+    fun show() {
         frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
-        frame.size = Dimension(1000, 600)
         frame.layout = BorderLayout(10, 10)
-        frame.minimumSize = Dimension(900, 500)
+        frame.size = Dimension(1200, 700) 
 
-        val topPanel = JPanel(FlowLayout(FlowLayout.LEFT))
-        val btnAdd = JButton("Add Product")
-        val btnSearch = JButton("Search Products")
-        val btnSort = JButton("Sort Products")
-        val btnFilter = JButton("Filter by Category")
-        val btnLowStock = JButton("Low Stock Report")
-        val btnViewCart = JButton("🛒 View Cart")
-        val btnRefresh = JButton("↻")
+        // North Panel (Search, Sort, Filter)
+        frame.add(createControlPanel(), BorderLayout.NORTH)
 
-        // Botón refresh más pequeño y solo ícono
-        btnRefresh.preferredSize = Dimension(50, 32)
-        btnRefresh.toolTipText = "Refresh List"
+        // Center Panel (Product List)
+        list.cellRenderer = ProductRenderer() 
+        frame.add(JScrollPane(list), BorderLayout.CENTER)
+
+        // South Panel (Action Buttons)
+        frame.add(createActionPanel(), BorderLayout.SOUTH)
+
+        // Listeners
+        addBtn.addActionListener { addProductDialog() }
+        editBtn.addActionListener { editProductUnifiedDialog() } 
+        delBtn.addActionListener { deleteProduct() }
+        viewCartBtn.addActionListener { cartDialog() }
+        addToCartBtn.addActionListener { addProductToCart() }
+        increaseStockBtn.addActionListener { adjustStock(true) }
+        decreaseStockBtn.addActionListener { adjustStock(false) }
         
-        listOf(btnAdd, btnSearch, btnSort, btnFilter, btnLowStock, btnViewCart, btnRefresh).forEach {
-            if (it != btnRefresh) it.preferredSize = Dimension(160, 32)
-            topPanel.add(it)
-        }
+        // Listeners that trigger the list refresh
+        searchField.document.addDocumentListener(SimpleDocumentListener { applySortAndFilter() })
+        sortComboBox.addActionListener { applySortAndFilter() }
+        filterComboBox.addActionListener { applySortAndFilter() }
 
-        frame.add(topPanel, BorderLayout.NORTH)
-
-        productList.cellRenderer = ProductRenderer()
-        productList.selectionMode = ListSelectionModel.SINGLE_SELECTION
-        productList.addListSelectionListener { updateButtonsState() }
-
-        val scrollPane = JScrollPane(productList)
-        frame.add(scrollPane, BorderLayout.CENTER)
-
-        val bottomPanel = JPanel(BorderLayout())
-        val actionPanel = JPanel(FlowLayout(FlowLayout.CENTER, 15, 5))
-        actionPanel.add(btnEditProduct)
-        actionPanel.add(btnViewDescription)
-        actionPanel.add(btnAddToCart)
-        actionPanel.add(btnDelete)
-        bottomPanel.add(actionPanel, BorderLayout.NORTH)
-        infoLabel.horizontalAlignment = SwingConstants.CENTER
-        bottomPanel.add(infoLabel, BorderLayout.SOUTH)
-        frame.add(bottomPanel, BorderLayout.SOUTH)
-
-        btnAdd.addActionListener { showAddDialog() }
-        btnSearch.addActionListener { showSearchDialog() }
-        btnSort.addActionListener { showSortDialog() }
-        btnFilter.addActionListener { showFilterByCategoryDialog() }
-        btnLowStock.addActionListener { showLowStockDialog() }
-        btnViewCart.addActionListener { showShoppingCart() }
-        btnRefresh.addActionListener { refreshProducts() }
-        btnEditProduct.addActionListener { showEditProductDialog() }
-        btnViewDescription.addActionListener { showDescriptionDialog() }
-        btnAddToCart.addActionListener { addToCart() }
-        btnDelete.addActionListener { deleteSelectedProduct() }
-
-        updateButtonsState()
-        refreshProducts()
-
+        list.addListSelectionListener(ListSelectionListener { e ->
+            if (!e.valueIsAdjusting) {
+                val isSelected = list.selectedValue != null
+                addToCartBtn.isEnabled = isSelected
+                increaseStockBtn.isEnabled = isSelected
+                decreaseStockBtn.isEnabled = isSelected
+            }
+        })
+        
+        refresh()
+        updateCartButton()
         frame.setLocationRelativeTo(null)
         frame.isVisible = true
     }
+    
+    // --- Panel Creation ---
 
-    private fun updateButtonsState() {
-        val selected = productList.selectedValue != null
-        btnEditProduct.isEnabled = selected
-        btnViewDescription.isEnabled = selected
-        btnAddToCart.isEnabled = selected
-        btnDelete.isEnabled = selected
-    }
-
-    private fun refreshProducts(list: List<Products>? = null) {
-        productListModel.clear()
-        val items = list ?: inventory.getAllProducts().sortedBy { it.id }
-        items.forEach { productListModel.addElement(it) }
-        infoLabel.text = "Showing ${items.size} products."
-        updateButtonsState()
-    }
-
-    private fun showAddDialog() {
-        val dialog = JDialog(frame, "Add Product", true)
-        dialog.layout = BorderLayout()
-        dialog.size = Dimension(400, 500)
-        dialog.setLocationRelativeTo(frame)
-
-        val panel = JPanel(GridLayout(0, 1, 4, 4))
-        val tfId = JTextField().apply { 
-            text = generateNewProductId().toString()
-            isEditable = false
-            background = Color.LIGHT_GRAY
-        }
-        val tfName = JTextField()
-        val tfDesc = JTextArea(3, 20).apply {
-            lineWrap = true
-            wrapStyleWord = true
-        }
-        val tfPrice = JTextField()
-        val tfStock = JTextField()
-        val cbCategory = JComboBox(Category.values())
-
-        panel.add(JLabel("Product ID (Auto-generated):")); panel.add(tfId)
-        panel.add(JLabel("Name:")); panel.add(tfName)
-        panel.add(JLabel("Description:")); panel.add(JScrollPane(tfDesc))
-        panel.add(JLabel("Price:")); panel.add(tfPrice)
-        panel.add(JLabel("Stock:")); panel.add(tfStock)
-        panel.add(JLabel("Category:")); panel.add(cbCategory)
-
-        val buttonPanel = JPanel(FlowLayout(FlowLayout.RIGHT))
-        val btnOk = JButton("OK")
-        val btnCancel = JButton("Cancel")
-
-        btnOk.addActionListener {
-            try {
-                val id = tfId.text.toInt()
-                val name = tfName.text.trim()
-                val desc = tfDesc.text.trim()
-                
-                if (id < 10000 || id > 99999) {
-                    JOptionPane.showMessageDialog(dialog, "Invalid ID. Must be a 5-digit number.", "Error", JOptionPane.ERROR_MESSAGE)
-                    return@addActionListener
-                }
-                
-                if (inventory.getProductById(id) != null) {
-                    JOptionPane.showMessageDialog(dialog, "ID already exists. Please try again.", "Error", JOptionPane.ERROR_MESSAGE)
-                    return@addActionListener
-                }
-                
-                if (inventory.isProductNameExists(name)) {
-                    JOptionPane.showMessageDialog(dialog, "Product name already exists. Please use a different name.", "Error", JOptionPane.ERROR_MESSAGE)
-                    return@addActionListener
-                }
-                
-                val product = Products(
-                    id,
-                    name,
-                    desc,
-                    tfPrice.text.toDouble(),
-                    tfStock.text.toInt(),
-                    cbCategory.selectedItem as Category
-                )
-                inventory.addProduct(product)
-                refreshProducts()
-                dialog.dispose()
-                JOptionPane.showMessageDialog(frame, "Product added successfully with ID: $id")
-            } catch (_: Exception) {
-                JOptionPane.showMessageDialog(dialog, "Invalid input.", "Error", JOptionPane.ERROR_MESSAGE)
-            }
-        }
-
-        btnCancel.addActionListener { dialog.dispose() }
-
-        buttonPanel.add(btnOk)
-        buttonPanel.add(btnCancel)
-
-        dialog.add(panel, BorderLayout.CENTER)
-        dialog.add(buttonPanel, BorderLayout.SOUTH)
-        dialog.isVisible = true
-    }
-
-    private fun showEditProductDialog() {
-        val selected = productList.selectedValue ?: return
-        
-        val dialog = JDialog(frame, "Edit Product", true)
-        dialog.layout = BorderLayout()
-        dialog.size = Dimension(450, 450)
-        dialog.setLocationRelativeTo(frame)
-
-        val mainPanel = JPanel(BorderLayout(10, 10))
-        mainPanel.border = BorderFactory.createEmptyBorder(10, 10, 10, 10)
-
-        // Panel superior con información del producto
-        val infoPanel = JPanel(GridLayout(2, 1, 5, 5))
-        infoPanel.border = BorderFactory.createTitledBorder("Product Information")
-        infoPanel.add(JLabel("Name: ${selected.name}"))
-        infoPanel.add(JLabel("ID: ${selected.id}"))
-        mainPanel.add(infoPanel, BorderLayout.NORTH)
-
-        // Panel central con controles de edición
-        val centerPanel = JPanel()
-        centerPanel.layout = BoxLayout(centerPanel, BoxLayout.Y_AXIS)
-
-        // Panel de control de stock
-        val stockPanel = JPanel(FlowLayout(FlowLayout.CENTER, 10, 10))
-        stockPanel.border = BorderFactory.createTitledBorder("Stock Management")
-        val btnIncrease = JButton("Increase Stock")
-        val btnDecrease = JButton("Decrease Stock")
-        val lblCurrentStock = JLabel("Current Stock: ${selected.stock}")
-
-        btnIncrease.addActionListener {
-            val amountStr = JOptionPane.showInputDialog(dialog, "Enter amount to increase:", "Increase Stock", JOptionPane.PLAIN_MESSAGE)
-            val amount = amountStr?.toIntOrNull()
-            if (amount != null && amount > 0) {
-                try {
-                    val product = inventory.getProductById(selected.id)
-                    if (product != null) {
-                        val newStock = product.increaseStock(amount)
-                        inventory.updateProductStock(selected.id, newStock)
-                        lblCurrentStock.text = "Current Stock: $newStock"
-                        refreshProducts()
-                    }
-                } catch (e: IllegalArgumentException) {
-                    JOptionPane.showMessageDialog(dialog, e.message, "Error", JOptionPane.ERROR_MESSAGE)
-                }
-            }
-        }
-
-        btnDecrease.addActionListener {
-            val amountStr = JOptionPane.showInputDialog(dialog, "Enter amount to decrease:", "Decrease Stock", JOptionPane.PLAIN_MESSAGE)
-            val amount = amountStr?.toIntOrNull()
-            if (amount != null && amount > 0) {
-                try {
-                    val product = inventory.getProductById(selected.id)
-                    if (product != null) {
-                        val newStock = product.decreaseStock(amount)
-                        inventory.updateProductStock(selected.id, newStock)
-                        lblCurrentStock.text = "Current Stock: $newStock"
-                        refreshProducts()
-                    }
-                } catch (e: IllegalArgumentException) {
-                    JOptionPane.showMessageDialog(dialog, e.message, "Error", JOptionPane.ERROR_MESSAGE)
-                }
-            }
-        }
-
-        stockPanel.add(btnIncrease)
-        stockPanel.add(btnDecrease)
-        stockPanel.add(lblCurrentStock)
-
-        // Panel de edición de detalles
-        val editPanel = JPanel(BorderLayout(5, 5))
-        editPanel.border = BorderFactory.createTitledBorder("Edit Product Details")
-        editPanel.preferredSize = Dimension(400, 150)
-        
-        // Descripción - ocupa todo el ancho
-        val descPanel = JPanel(BorderLayout(5, 5))
-        val tfDesc = JTextArea(selected.desc, 3, 20).apply {
-            lineWrap = true
-            wrapStyleWord = true
-        }
-        
-        val descScrollPane = JScrollPane(tfDesc).apply {
-            verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED
-            horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
-            preferredSize = Dimension(380, 60)
-        }
-        
-        descPanel.add(JLabel("Description:"), BorderLayout.NORTH)
-        descPanel.add(descScrollPane, BorderLayout.CENTER)
-        
-        // Precio y Categoría - en la misma línea debajo de descripción
-        val priceCategoryPanel = JPanel(FlowLayout(FlowLayout.LEFT, 10, 5))
-        
-        val pricePanel = JPanel(BorderLayout(5, 5))
-        val tfPrice = JTextField(selected.price.toString()).apply {
-            preferredSize = Dimension(120, 25)
-        }
-        pricePanel.add(JLabel("Price:"), BorderLayout.NORTH)
-        pricePanel.add(tfPrice, BorderLayout.CENTER)
-        
-        val categoryPanel = JPanel(BorderLayout(5, 5))
-        val cbCategory = JComboBox(Category.values()).apply { 
-            selectedItem = selected.category
-            preferredSize = Dimension(180, 25)
-        }
-        categoryPanel.add(JLabel("Category:"), BorderLayout.NORTH)
-        categoryPanel.add(cbCategory, BorderLayout.CENTER)
-        
-        priceCategoryPanel.add(pricePanel)
-        priceCategoryPanel.add(categoryPanel)
-
-        editPanel.add(descPanel, BorderLayout.NORTH)
-        editPanel.add(priceCategoryPanel, BorderLayout.CENTER)
-
-        centerPanel.add(stockPanel)
-        centerPanel.add(editPanel)
-        mainPanel.add(centerPanel, BorderLayout.CENTER)
-
-        // Panel de botones
-        val buttonPanel = JPanel(FlowLayout(FlowLayout.RIGHT))
-        val btnSave = JButton("Save Changes")
-        val btnCancel = JButton("Cancel")
-
-        btnSave.addActionListener {
-            try {
-                val newDesc = tfDesc.text.trim()
-                val newPrice = tfPrice.text.toDouble()
-                val newCategory = cbCategory.selectedItem as Category
-                
-                if (newPrice < 0) {
-                    JOptionPane.showMessageDialog(dialog, "Price cannot be negative.", "Error", JOptionPane.ERROR_MESSAGE)
-                    return@addActionListener
-                }
-                
-                // Actualizar el producto
-                val updatedProduct = Products(
-                    selected.id,
-                    selected.name,
-                    newDesc,
-                    newPrice,
-                    selected.stock, // Stock se mantiene igual (se modifica con los botones)
-                    newCategory
-                )
-                
-                // Reemplazar el producto en el inventario
-                inventory.removeProductById(selected.id)
-                inventory.addProduct(updatedProduct)
-                
-                refreshProducts()
-                dialog.dispose()
-                JOptionPane.showMessageDialog(frame, "Product updated successfully!")
-                
-            } catch (e: Exception) {
-                JOptionPane.showMessageDialog(dialog, "Error updating product: ${e.message}", "Error", JOptionPane.ERROR_MESSAGE)
-            }
-        }
-
-        btnCancel.addActionListener { dialog.dispose() }
-
-        buttonPanel.add(btnSave)
-        buttonPanel.add(btnCancel)
-        mainPanel.add(buttonPanel, BorderLayout.SOUTH)
-
-        dialog.add(mainPanel)
-        dialog.isVisible = true
-    }
-
-    private fun generateNewProductId(): Int {
-        val existingIds = inventory.getAllProducts().map { it.id }.toSet()
-        
-        var newId = 10000
-        while (newId <= 99999) {
-            if (!existingIds.contains(newId)) {
-                return newId
-            }
-            newId++
-        }
-        
-        for (id in 10000..99999) {
-            if (!existingIds.contains(id)) {
-                return id
-            }
-        }
-        
-        return 99999
-    }
-
-    private fun showDescriptionDialog() {
-        val selected = productList.selectedValue ?: return
-        JOptionPane.showMessageDialog(
-            frame, 
-            "Name: ${selected.name}\n\nID: ${selected.id}\n\nDescription:\n${selected.desc}",
-            "Product Description - ${selected.name}",
-            JOptionPane.INFORMATION_MESSAGE
+    private fun createControlPanel(): JPanel {
+        val panel = JPanel(FlowLayout(FlowLayout.CENTER, 15, 10))
+        panel.border = BorderFactory.createCompoundBorder(
+            BorderFactory.createTitledBorder("Display Controls"),
+            EmptyBorder(5, 10, 5, 10)
         )
+        
+        panel.add(JLabel("🔍 Search:"))
+        panel.add(searchField)
+        panel.add(Box.createHorizontalStrut(15))
+        panel.add(JLabel("↕️ Sort By:"))
+        panel.add(sortComboBox)
+        panel.add(Box.createHorizontalStrut(15))
+        panel.add(JLabel("🏷️ Filter by Category:"))
+        panel.add(filterComboBox)
+        
+        return panel
+    }
+    
+    private fun createActionPanel(): JPanel {
+        val buttonPanel = JPanel(FlowLayout(FlowLayout.CENTER, 20, 10))
+        buttonPanel.border = EmptyBorder(5, 10, 10, 10)
+        
+        addToCartBtn.isEnabled = false 
+        increaseStockBtn.isEnabled = false
+        decreaseStockBtn.isEnabled = false
+        
+        buttonPanel.add(addBtn)
+        buttonPanel.add(editBtn)
+        buttonPanel.add(delBtn)
+        buttonPanel.add(Box.createHorizontalStrut(30))
+        buttonPanel.add(increaseStockBtn)
+        buttonPanel.add(decreaseStockBtn)
+        buttonPanel.add(Box.createHorizontalStrut(30))
+        buttonPanel.add(addToCartBtn)
+        buttonPanel.add(viewCartBtn)
+        
+        return buttonPanel
+    }
+    
+    // --- Data Management & Display ---
+
+    private fun refresh(products: List<Products>? = null) {
+        listModel.clear()
+        val items = products ?: inventory.getAllProducts()
+        items.forEach { listModel.addElement(it) }
+    }
+    
+    private fun updateCartButton() {
+        viewCartBtn.text = "🛒 View Cart (${cart.getTotalItems()})"
     }
 
-    private fun addToCart() {
-        val selected = productList.selectedValue ?: return
+    /**
+     * **FIXED:** This function now correctly applies filters *first*,
+     * and *then* sorts the resulting list.
+     */
+    private fun applySortAndFilter() {
+        val sortParam = sortComboBox.selectedItem as String
+        val selectedCategoryName = filterComboBox.selectedItem as String
+        val query = searchField.text.trim()
+
+        // 1. Start with the full inventory list
+        var currentList: List<Products> = inventory.getAllProducts()
+
+        // 2. Apply Search Filter (if any)
+        if (query.isNotBlank()) {
+            currentList = currentList.filter { 
+                it.name.contains(query, ignoreCase = true) || it.desc.contains(query, ignoreCase = true) 
+            }
+        }
+
+        // 3. Apply Category Filter (if not "Show All")
+        if (selectedCategoryName != "Show All") {
+            val category = Category.values().first { it.displayName == selectedCategoryName }
+            currentList = currentList.filter { it.category == category }
+        }
         
-        val quantityStr = JOptionPane.showInputDialog(
+        // 4. FIX: Apply Sort *only* to the filtered list
+        val sortedList = when (sortParam.lowercase()) {
+            "id" -> currentList.sortedBy { it.id }
+            "name" -> currentList.sortedBy { it.name }
+            "price" -> currentList.sortedBy { it.price }
+            "stock" -> currentList.sortedBy { it.stock }
+            "category" -> currentList.sortedBy { it.category.displayName }
+            else -> currentList // No sorting if parameter is unknown
+        }
+
+        // 5. Refresh the JList with the final list
+        refresh(sortedList)
+    }
+
+    // --- Stock Adjustment ---
+
+    private fun adjustStock(increase: Boolean) {
+        val selected = list.selectedValue ?: return
+        
+        val action = if (increase) "increase" else "decrease"
+        val title = if (increase) "➕ Increase Stock" else "➖ Decrease Stock"
+        
+        val quantityInput = JOptionPane.showInputDialog(
             frame, 
-            "Enter quantity for ${selected.name} (Available: ${selected.stock}):",
-            "Add to Cart",
-            JOptionPane.PLAIN_MESSAGE
+            "Enter quantity to $action stock for ${selected.name} (Current: ${selected.stock}):", 
+            title, 
+            JOptionPane.QUESTION_MESSAGE
         ) ?: return
+
+        val quantity = quantityInput.toIntOrNull()
         
-        val quantity = quantityStr.toIntOrNull()
         if (quantity == null || quantity <= 0) {
-            JOptionPane.showMessageDialog(frame, "Please enter a valid positive quantity.")
+            JOptionPane.showMessageDialog(frame, "Invalid quantity entered.", "Error", JOptionPane.ERROR_MESSAGE)
             return
         }
-        
-        if (quantity > selected.stock) {
-            JOptionPane.showMessageDialog(frame, "Not enough stock. Available: ${selected.stock}")
-            return
+
+        try {
+            val productToUpdate = selected
+            if (increase) {
+                productToUpdate.increaseStock(quantity)
+            } else {
+                productToUpdate.decreaseStock(quantity)
+            }
+
+            inventory.updateProduct(productToUpdate)
+            applySortAndFilter() // Refresh list to show updated stock and maintain filters
+            JOptionPane.showMessageDialog(frame, "Stock for ${selected.name} successfully ${action}d by $quantity.", "Success", JOptionPane.INFORMATION_MESSAGE)
+        } catch (e: IllegalArgumentException) {
+            JOptionPane.showMessageDialog(frame, "Stock Error: ${e.message}", "Error", JOptionPane.ERROR_MESSAGE)
         }
-        
-        shoppingCart.addItem(selected.id, quantity)
-        JOptionPane.showMessageDialog(frame, "Added $quantity of ${selected.name} to cart.")
     }
 
-    private fun showShoppingCart() {
-        val dialog = JDialog(frame, "Shopping Cart", true)
-        dialog.layout = BorderLayout()
-        dialog.size = Dimension(600, 500)
-        dialog.setLocationRelativeTo(frame)
+    // --- Dialogs ---
 
-        val mainPanel = JPanel(BorderLayout(10, 10))
-        mainPanel.border = BorderFactory.createEmptyBorder(10, 10, 10, 10)
-
-        // Título
-        val titleLabel = JLabel("Shopping Cart - Items: ${shoppingCart.getTotalItems()}")
-        titleLabel.font = Font("Segoe UI", Font.BOLD, 16)
-        titleLabel.horizontalAlignment = SwingConstants.CENTER
-        mainPanel.add(titleLabel, BorderLayout.NORTH)
-
-        // Lista del carrito
-        val cartListModel = DefaultListModel<String>()
-        val cartList = JList(cartListModel)
-        cartList.font = Font("Segoe UI", Font.PLAIN, 14)
+    private fun addProductDialog() {
+        val id = inventory.generateNewProductId()
+        val name = JOptionPane.showInputDialog(frame, "Name:") ?: return
+        val desc = JOptionPane.showInputDialog(frame, "Description:") ?: ""
+        val price = JOptionPane.showInputDialog(frame, "Price:").toDoubleOrNull() ?: 0.0
+        val stock = JOptionPane.showInputDialog(frame, "Stock:").toIntOrNull() ?: 0
         
-        // Actualizar lista
-        fun updateCartList() {
-            cartListModel.clear()
-            val items = shoppingCart.getCartItems()
-            if (items.isEmpty()) {
-                cartListModel.addElement("Cart is empty")
-            } else {
-                items.forEach { (product, quantity) ->
-                    cartListModel.addElement("${product.name} | Qty: $quantity | Price: $${"%.2f".format(product.price)} | Total: $${"%.2f".format(product.price * quantity)}")
-                }
+        val categories = Category.values().map { it.displayName }.toTypedArray()
+        val categoryName = JOptionPane.showInputDialog(frame, "Category:", "Select Category", JOptionPane.PLAIN_MESSAGE, null, categories, categories[0]) as? String ?: return
+        val category = Category.values().first { it.displayName == categoryName }
+
+        try {
+            val product = Products(id, name, desc, price, stock, category)
+            inventory.addProduct(product)
+            applySortAndFilter()
+        } catch (e: Exception) {
+            JOptionPane.showMessageDialog(frame, "Error: ${e.message}")
+        }
+    }
+
+    // Uses JTextArea in JScrollPane to prevent menu deformation
+    private fun editProductUnifiedDialog() {
+        val selected = list.selectedValue ?: return
+
+        val nameField = JTextField(selected.name).apply { isEditable = false } // BLOCKED EDITING
+        val priceField = JTextField(selected.price.toString())
+        val stockField = JTextField(selected.stock.toString()).apply { isEditable = false } 
+        
+        val descArea = JTextArea(selected.desc, 5, 20).apply {
+            lineWrap = true
+            wrapStyleWord = true
+        }
+        val descScroll = JScrollPane(descArea).apply {
+             preferredSize = Dimension(250, 80)
+        }
+
+        val categories = Category.values().map { it.displayName }.toTypedArray()
+        val categoryComboBox = JComboBox(categories).apply {
+            selectedItem = selected.category.displayName
+        }
+
+        val panel = JPanel(GridBagLayout()).apply {
+            val gbc = GridBagConstraints().apply { insets = Insets(4, 4, 4, 4) }
+
+            fun addComponent(label: String, component: Component, y: Int, isTextArea: Boolean = false) {
+                gbc.gridx = 0; gbc.gridy = y; gbc.weightx = 0.0; gbc.anchor = GridBagConstraints.WEST; gbc.fill = GridBagConstraints.NONE
+                add(JLabel(label), gbc)
+                
+                gbc.gridx = 1; gbc.weightx = 1.0; gbc.anchor = GridBagConstraints.EAST; gbc.fill = if (isTextArea) GridBagConstraints.BOTH else GridBagConstraints.HORIZONTAL
+                gbc.gridheight = if (isTextArea) 2 else 1
+                add(component, gbc)
+                gbc.gridheight = 1 
             }
-            titleLabel.text = "Shopping Cart - Items: ${shoppingCart.getTotalItems()} | Total: $${"%.2f".format(shoppingCart.getTotalPrice())}"
+            
+            addComponent("ID:", JLabel(selected.id.toString()), 0)
+            addComponent("Name:", nameField, 1)
+            addComponent("Price:", priceField, 2)
+            addComponent("Category:", categoryComboBox, 3)
+            addComponent("Stock:", stockField, 4)
+            addComponent("Description:", descScroll, 5, true) 
         }
 
-        updateCartList()
+        val result = JOptionPane.showConfirmDialog(
+            frame, panel, "✏️ Edit Product: ${selected.name}", 
+            JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE
+        )
 
-        val scrollPane = JScrollPane(cartList)
-        mainPanel.add(scrollPane, BorderLayout.CENTER)
+        if (result == JOptionPane.OK_OPTION) {
+            val newDesc = descArea.text.trim()
+            val newPrice = priceField.text.toDoubleOrNull()
+            val newCategoryName = categoryComboBox.selectedItem as String
+            val newCategory = Category.values().first { it.displayName == newCategoryName }
 
-        // Panel de botones
-        val buttonPanel = JPanel(FlowLayout(FlowLayout.CENTER, 10, 5))
-        val btnRemove = JButton("Remove Selected")
-        val btnClear = JButton("Clear Cart")
-        val btnCheckout = JButton("Process Purchase")
-
-        btnRemove.addActionListener {
-            val selectedIndex = cartList.selectedIndex
-            if (selectedIndex >= 0 && selectedIndex < shoppingCart.getCartItems().size) {
-                val productId = shoppingCart.getCartItems().keys.elementAt(selectedIndex).id
-                shoppingCart.removeItem(productId)
-                updateCartList()
-            }
-        }
-
-        btnClear.addActionListener {
-            shoppingCart.clearCart()
-            updateCartList()
-        }
-
-        btnCheckout.addActionListener {
-            if (shoppingCart.getCartItems().isEmpty()) {
-                JOptionPane.showMessageDialog(dialog, "Cart is empty!")
-                return@addActionListener
+            if (newPrice == null || newPrice < 0) {
+                 JOptionPane.showMessageDialog(frame, "Invalid input for Price.", "Error", JOptionPane.ERROR_MESSAGE)
+                 return
             }
 
             try {
-                shoppingCart.processPurchase()
-                JOptionPane.showMessageDialog(dialog, "Purchase processed successfully! Stock updated.")
-                refreshProducts()
-                updateCartList()
+                selected.editProduct(selected.name, newDesc, newPrice, newCategory)
+                inventory.updateProduct(selected)
+                applySortAndFilter()
             } catch (e: Exception) {
-                JOptionPane.showMessageDialog(dialog, "Error processing purchase: ${e.message}", "Error", JOptionPane.ERROR_MESSAGE)
+                JOptionPane.showMessageDialog(frame, "Error updating product: ${e.message}", "Error", JOptionPane.ERROR_MESSAGE)
             }
         }
-
-        buttonPanel.add(btnRemove)
-        buttonPanel.add(btnClear)
-        buttonPanel.add(btnCheckout)
-        mainPanel.add(buttonPanel, BorderLayout.SOUTH)
-
-        dialog.add(mainPanel)
-        dialog.isVisible = true
     }
 
-    private fun deleteSelectedProduct() {
-        val selected = productList.selectedValue ?: return
-        val confirm = JOptionPane.showConfirmDialog(frame, "Delete ${selected.name}?", "Confirm Delete", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)
-        if (confirm == JOptionPane.YES_OPTION) {
+    private fun deleteProduct() {
+        val selected = list.selectedValue ?: return
+        if (JOptionPane.showConfirmDialog(frame, "Delete ${selected.name}?", "Confirm Deletion", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
             inventory.removeProductById(selected.id)
-            refreshProducts()
-            JOptionPane.showMessageDialog(frame, "Product deleted.")
+            applySortAndFilter()
         }
     }
 
-    // 🔍 Diálogo para buscar productos
-    private fun showSearchDialog() {
-        val searchField = JTextField(20)
-        
-        val panel = JPanel(GridLayout(0, 1, 4, 4))
-        panel.add(JLabel("Enter search term (name or description):"))
-        panel.add(searchField)
-        
-        val result = JOptionPane.showConfirmDialog(frame, panel, "Search Products", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
-        if (result != JOptionPane.OK_OPTION) return
-        
-        val query = searchField.text.trim()
-        if (query.isEmpty()) {
-            JOptionPane.showMessageDialog(frame, "Please enter a search term.")
+    private fun cartDialog() {
+        val items = cart.getItems()
+        val msg = if (items.isEmpty()) "The cart is empty." else buildString {
+            append("Items in Cart:\n\n")
+            items.forEach { (p, q) -> append("${p.name} (x$q) = $${String.format("%.2f", p.price * q)}\n") }
+            append("\nTotal: $${String.format("%.2f", cart.getTotalPrice())}")
+        }
+
+        val options = arrayOf("Add Product", "Checkout", "Close")
+        val choice = JOptionPane.showOptionDialog(
+            frame, msg, "🛒 Shopping Cart",
+            JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[2]
+        )
+
+        when (choice) {
+            0 -> addProductToCart()
+            1 -> checkout()
+        }
+    }
+    
+    private fun addProductToCart() {
+        val selected = list.selectedValue ?: return
+        val quantity = JOptionPane.showInputDialog(frame, "Quantity to add (Stock: ${selected.stock}):").toIntOrNull() ?: 0
+        if (quantity > 0) {
+            try {
+                cart.addItem(selected.id, quantity)
+                addToCartBtn.isEnabled = false 
+                updateCartButton()
+                JOptionPane.showMessageDialog(frame, "$quantity of ${selected.name} added to cart.")
+            } catch (e: Exception) {
+                JOptionPane.showMessageDialog(frame, "Error adding product: ${e.message}")
+            }
+        }
+    }
+
+    private fun checkout() {
+        if (cart.getItems().isEmpty()) {
+            JOptionPane.showMessageDialog(frame, "The cart is empty. Nothing to checkout.")
             return
         }
         
-        val results = inventory.searchProducts(query)
-        
-        if (results.isEmpty()) {
-            JOptionPane.showMessageDialog(frame, "No products found for: \"$query\"")
-        } else {
-            refreshProducts(results)
-            JOptionPane.showMessageDialog(frame, "Found ${results.size} products for: \"$query\"")
-        }
-    }
-
-    // 🔢 Diálogo para ordenar productos
-    private fun showSortDialog() {
-        val sortOptions = arrayOf("ID", "Name", "Price", "Stock", "Category", "Group by Category")
-        val sortComboBox = JComboBox(sortOptions)
-        val ascendingCheckBox = JCheckBox("Ascending Order", true)
-        
-        val panel = JPanel(GridLayout(0, 1, 4, 4))
-        panel.add(JLabel("Sort by:"))
-        panel.add(sortComboBox)
-        panel.add(ascendingCheckBox)
-        
-        val result = JOptionPane.showConfirmDialog(frame, panel, "Sort Products", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
-        if (result != JOptionPane.OK_OPTION) return
-        
-        val selectedOption = sortComboBox.selectedItem as String
-        val ascending = ascendingCheckBox.isSelected
-        
-        val results = when (selectedOption) {
-            "Group by Category" -> inventory.sortProductsByCategory(ascending)
-            else -> inventory.sortProductsBy(selectedOption.lowercase(), ascending)
-        }
-        
-        refreshProducts(results)
-        val orderText = if (ascending) "ascending" else "descending"
-        JOptionPane.showMessageDialog(frame, "Products sorted by $selectedOption ($orderText)")
-    }
-
-    private fun showFilterByCategoryDialog() {
-        val categories = Category.values()
-        val categoryComboBox = JComboBox(categories)
-        
-        val panel = JPanel(GridLayout(0, 1, 4, 4))
-        panel.add(JLabel("Select Category:"))
-        panel.add(categoryComboBox)
-        
-        val result = JOptionPane.showConfirmDialog(frame, panel, "Filter by Category", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
-        if (result != JOptionPane.OK_OPTION) return
-        
-        val selectedCategory = categoryComboBox.selectedItem as Category
-        val results = inventory.getAllProducts().filter { it.category == selectedCategory }
-        
-        if (results.isEmpty()) {
-            JOptionPane.showMessageDialog(frame, "No products found in category: ${selectedCategory.displayName}")
-        } else {
-            refreshProducts(results)
-            JOptionPane.showMessageDialog(frame, "Showing ${results.size} products in ${selectedCategory.displayName}")
-        }
-    }
-
-    private fun showLowStockDialog() {
-        val input = JOptionPane.showInputDialog(frame, "Enter stock threshold:", "Low Stock Report", JOptionPane.PLAIN_MESSAGE) ?: return
-        val threshold = input.toIntOrNull() ?: return
-        val results = inventory.getAllProducts().filter { it.stock < threshold }
-        if (results.isEmpty()) {
-            JOptionPane.showMessageDialog(frame, "No products below that stock level.")
-        } else {
-            refreshProducts(results)
-            JOptionPane.showMessageDialog(frame, "Found ${results.size} products with stock below $threshold")
-        }
-    }
-
-    private class ProductRenderer : JLabel(), ListCellRenderer<Products> {
-        override fun getListCellRendererComponent(
-            list: JList<out Products>?,
-            value: Products?,
-            index: Int,
-            isSelected: Boolean,
-            cellHasFocus: Boolean
-        ): Component {
-            val lightGray = Color(245, 245, 245)    // Gris muy claro para filas pares
-            val lighterGray = Color(252, 252, 252)  // Gris casi blanco para filas impares
-            
-            text = if (value != null)
-                "ID: ${value.id} | ${value.name} | $${"%.2f".format(value.price)} | Stock: ${value.stock} | ${value.category.emoji} ${value.category.displayName}"
-            else ""
-            
-            // Fuente normal como antes
-            font = Font("Segoe UI", Font.PLAIN, 14)
-            isOpaque = true
-            
-            // Alternar colores para filas sin bordes bruscos
-            background = if (isSelected) {
-                Color(220, 235, 255)  // Azul claro para selección
-            } else {
-                if (index % 2 == 0) lighterGray else lightGray
+        if (JOptionPane.showConfirmDialog(frame, "Confirm checkout for $${String.format("%.2f", cart.getTotalPrice())}?", "Checkout Confirmation", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            try {
+                cart.checkout()
+                JOptionPane.showMessageDialog(frame, "Purchase successful! Stock updated.")
+                updateCartButton()
+                applySortAndFilter() 
+            } catch (e: Exception) {
+                JOptionPane.showMessageDialog(frame, "Checkout Error: ${e.message}")
             }
+        }
+    }
+
+    // --- Helper Classes ---
+
+    // Used to listen to key strokes for immediate search update
+    private class SimpleDocumentListener(private val onChange: () -> Unit) : javax.swing.event.DocumentListener {
+        override fun insertUpdate(e: javax.swing.event.DocumentEvent?) = onChange()
+        override fun removeUpdate(e: javax.swing.event.DocumentEvent?) = onChange()
+        override fun changedUpdate(e: javax.swing.event.DocumentEvent?) = onChange()
+    }
+
+    // Enhanced Product List Renderer
+    private class ProductRenderer : JPanel(), ListCellRenderer<Products> {
+        private val infoPanel = JPanel(GridLayout(1, 5, 15, 0)) 
+        private val idLabel = JLabel()
+        private val nameDescPanel = JPanel() 
+        private val nameLabel = JLabel()
+        private val descLabel = JLabel()
+        private val stockLabel = JLabel()
+        private val priceLabel = JLabel()
+        private val categoryLabel = JLabel()
+
+        init {
+            layout = BorderLayout()
+            infoPanel.isOpaque = false 
             
-            foreground = Color.BLACK
+            nameDescPanel.layout = BoxLayout(nameDescPanel, BoxLayout.Y_AXIS) 
+            nameDescPanel.isOpaque = false
+            nameDescPanel.add(nameLabel)
+            nameDescPanel.add(descLabel)
+
+            idLabel.font = Font("Monospaced", Font.BOLD, 12)
+            nameLabel.font = Font("SansSerif", Font.BOLD, 14)
+            descLabel.font = Font("SansSerif", Font.ITALIC, 11)
+            priceLabel.horizontalAlignment = SwingConstants.RIGHT
+            categoryLabel.horizontalAlignment = SwingConstants.LEFT
             
-            // 🔥 AGREGAR LÍNEA DE SEPARACIÓN ENTRE PRODUCTOS
-            border = BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY), // Línea inferior
-                BorderFactory.createEmptyBorder(8, 10, 8, 10) // Padding
-            )
+            infoPanel.add(idLabel)
+            infoPanel.add(nameDescPanel)
+            infoPanel.add(priceLabel)
+            infoPanel.add(stockLabel)
+            infoPanel.add(categoryLabel)
             
+            add(infoPanel, BorderLayout.CENTER)
+            border = BorderFactory.createEmptyBorder(8, 10, 8, 10) 
+        }
+
+        override fun getListCellRendererComponent(list: JList<out Products>?, value: Products?, index: Int, isSelected: Boolean, cellHasFocus: Boolean): Component {
+            value?.let { p ->
+                idLabel.text = "ID: ${p.id}"
+                nameLabel.text = p.name
+                descLabel.text = "<html><i>${p.desc.take(40)}${if (p.desc.length > 40) "..." else ""}</i></html>"
+                priceLabel.text = "$${String.format("%.2f", p.price)}"
+                stockLabel.text = "Stock: ${p.stock}"
+                categoryLabel.text = p.category.toString()
+
+                stockLabel.foreground = when {
+                    p.stock == 0 -> Color(200, 0, 0) 
+                    p.stock < 5 -> Color(255, 140, 0) 
+                    else -> Color.BLACK
+                }
+            }
+
+            background = if (isSelected) Color(173, 216, 230) else Color.WHITE
+            isOpaque = true
+            infoPanel.background = background
+            nameDescPanel.background = background
+
             return this
         }
     }
