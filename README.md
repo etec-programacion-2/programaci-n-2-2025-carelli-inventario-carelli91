@@ -16,7 +16,7 @@ Kotlin: Kotlin 1.5 o superior (recomendado: Kotlin 1.8 o 1.9)
 
 
 
-Comandos en orden para la correcta ejecucion: 
+Comandos en orden para la correcta ejecucion desde la consola en el escritorio: 
 
 -git clone git@github.com:etec-programacion-2/programaci-n-2-2025-carelli-inventario-carelli91.git
 -cd programaci-n-2-2025-carelli-inventario-carelli91/
