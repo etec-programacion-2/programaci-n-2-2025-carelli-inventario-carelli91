@@ -1,2 +1,100 @@
-567,hammer,basic tool,15.0,13,TOOLS
-123,Ibuprofeno,For aches,10.0,23,PHARMACY
+10001,Ibuprofen,For pain and fever relief,8.5,45,PHARMACY
+10002,Paracetamol,Pain and fever relief,5.25,60,PHARMACY
+10003,Vitamin C,Immune system supplement,12.75,30,PHARMACY
+10004,Bandages,Wound care protection,3.2,118,PHARMACY
+10005,Cough Syrup,Relieves dry cough,9.8,25,PHARMACY
+10007,Allergy Pills,Seasonal allergy relief,15.3,33,PHARMACY
+20001,Apples,Red fresh fruit,1.2,145,FRESH_FOOD
+20003,Lettuce,Fresh green vegetable,1.5,80,FRESH_FOOD
+20004,Tomatoes,Red juicy vegetable,1.8,95,FRESH_FOOD
+20005,Carrots,Orange root vegetable,1.1,110,FRESH_FOOD
+20006,Broccoli,Green healthy vegetable,2.25,65,FRESH_FOOD
+20007,Strawberries,Sweet red berries,3.5,40,FRESH_FOOD
+20008,Grapes,Small sweet fruits,2.8,55,FRESH_FOOD
+20009,Oranges,Citrus fruit vitamin C,1.65,75,FRESH_FOOD
+20010,Avocados,Healthy green fruit,2.95,45,FRESH_FOOD
+30001,Canned Beans,Ready to eat beans,1.75,85,NON_PERISHABLE_FOOD
+30002,Pasta,Italian wheat pasta,1.25,120,NON_PERISHABLE_FOOD
+30003,Rice,Long grain white rice,2.5,75,NON_PERISHABLE_FOOD
+30004,Canned Soup,Chicken noodle soup,2.25,60,NON_PERISHABLE_FOOD
+30005,Cereal,Breakfast corn flakes,3.75,45,NON_PERISHABLE_FOOD
+30006,Cookies,Chocolate chip cookies,2.95,70,NON_PERISHABLE_FOOD
+30007,Canned Tuna,Protein rich fish,3.2,55,NON_PERISHABLE_FOOD
+30008,Peanut Butter,Creamy spread,4.5,40,NON_PERISHABLE_FOOD
+30009,Olive Oil,Cooking oil,8.75,25,NON_PERISHABLE_FOOD
+30010,Flour,All purpose flour,2.15,65,NON_PERISHABLE_FOOD
+40001,Milk,Fresh whole milk,2.8,50,DAIRY
+40002,Cheese,Yellow cheddar cheese,4.5,35,DAIRY
+40003,Yogurt,Natural yogurt,1.95,65,DAIRY
+40004,Butter,Salted butter,3.25,40,DAIRY
+40005,Eggs,Fresh chicken eggs,3.5,90,DAIRY
+40006,Cream,Heavy cooking cream,2.75,30,DAIRY
+40007,Sour Cream,Dairy topping,1.85,45,DAIRY
+40008,Mozzarella,Pizza cheese,5.25,30,DAIRY
+50001,Coffee,Black ground coffee,5.25,55,BEVERAGES
+50002,Tea,Green tea bags,3.75,80,BEVERAGES
+50003,Orange Juice,Fresh squeezed juice,2.95,45,BEVERAGES
+50004,Soda,Cola carbonated drink,1.5,120,BEVERAGES
+50005,Water,Mineral water bottles,0.75,200,BEVERAGES
+50006,Energy Drink,Boost energy drink,2.25,60,BEVERAGES
+50007,Apple Juice,Sweet fruit juice,2.15,50,BEVERAGES
+50008,Lemonade,Refreshing drink,1.95,70,BEVERAGES
+60001,Laundry Detergent,For washing clothes,8.95,22,CLEANING
+60002,Dish Soap,For washing dishes,2.25,85,CLEANING
+60003,All Purpose Cleaner,Multi-surface cleaner,3.5,40,CLEANING
+60004,Glass Cleaner,For windows and mirrors,2.75,50,CLEANING
+60005,Bleach,Disinfecting bleach,1.95,35,CLEANING
+60006,Trash Bags,Heavy duty bags,4.75,60,CLEANING
+60007,Sponges,Cleaning sponges,0.99,150,CLEANING
+60008,Paper Towels,Absorbent towels,2.5,80,CLEANING
+70001,Shampoo,Hair cleaning product,4.5,55,PERSONAL_CARE
+70002,Toothpaste,For dental hygiene,2.75,90,PERSONAL_CARE
+70003,Deodorant,Body odor protection,3.25,70,PERSONAL_CARE
+70004,Body Soap,Bar soap for bathing,1.25,120,PERSONAL_CARE
+70005,Hand Lotion,Moisturizing cream,3.95,45,PERSONAL_CARE
+70006,Shaving Cream,For smooth shave,2.5,60,PERSONAL_CARE
+70007,Toothbrush,Oral care tool,1.75,100,PERSONAL_CARE
+70008,Mouthwash,Oral rinse,3.45,50,PERSONAL_CARE
+80001,Dog Food,Complete dog nutrition,12.5,30,PET_CARE
+80002,Cat Food,Nutritious cat food,10.75,35,PET_CARE
+80003,Pet Shampoo,For pet cleaning,5.25,40,PET_CARE
+80004,Dog Treats,Reward snacks,3.95,65,PET_CARE
+80005,Cat Litter,Absorbent litter,8.25,25,PET_CARE
+80006,Fish Food,Aquarium fish food,2.15,80,PET_CARE
+90001,Baby Diapers,Newborn size,12.95,20,BABY_CARE
+90002,Baby Wipes,Cleaning wipes,3.75,59,BABY_CARE
+90003,Baby Formula,Milk powder,15.5,15,BABY_CARE
+90004,Baby Shampoo,Gentle for babies,4.25,34,BABY_CARE
+90005,Baby Lotion,Moisturizing cream,3.95,39,BABY_CARE
+90006,Pacifier,Soothing for babies,2.5,75,BABY_CARE
+91001,Light Bulbs,LED energy saving,3.25,45,HOME_ESSENTIALS
+91002,Batteries,AA alkaline batteries,5.75,80,HOME_ESSENTIALS
+91003,Candles,Scented home candles,4.5,30,HOME_ESSENTIALS
+91004,Extension Cord,Power cord 10ft,8.95,25,HOME_ESSENTIALS
+91005,Glue,Strong adhesive,2.25,65,HOME_ESSENTIALS
+91006,Scissors,Household scissors,3.75,40,HOME_ESSENTIALS
+92001,Foundation,Skin tone makeup,12.5,25,BEAUTY
+92002,Mascara,Eye lash enhancer,8.75,35,BEAUTY
+92003,Lipstick,Long lasting color,9.25,30,BEAUTY
+92004,Face Cream,Anti-aging moisturizer,15.75,20,BEAUTY
+92005,Nail Polish,Colorful nail paint,4.5,50,BEAUTY
+92006,Eye Shadow,Color palette,11.25,25,BEAUTY
+93001,Notebooks,College ruled,2.5,90,STATIONERY
+93002,Pens,Blue ink ballpoint,1.25,194,STATIONERY
+93003,Pencils,Wooden #2 pencils,0.75,150,STATIONERY
+93004,Markers,Colorful set,3.95,45,STATIONERY
+93005,Stapler,Office stapler,4.5,30,STATIONERY
+93006,Calculator,Basic math calculator,6.75,25,STATIONERY
+94001,Hammer,Construction tool,8.5,20,TOOLS
+94002,Screwdriver Set,Various sizes,6.25,35,TOOLS
+94003,Wrench,Adjustable tool,7.95,25,TOOLS
+94004,Drill Bits,Replacement bits,5.75,40,TOOLS
+94005,Tape Measure,25 foot measure,4.25,30,TOOLS
+95001,T-Shirts,Cotton crew neck,12.95,50,CLOTHING
+95002,Jeans,Blue denim pants,25.5,35,CLOTHING
+95003,Socks,Cotton ankle socks,3.25,120,CLOTHING
+95004,Baseball Cap,Adjustable cap,8.75,45,CLOTHING
+95005,Winter Gloves,Warm protection,5.5,60,CLOTHING
+95006,Scarf,Winter wool scarf,9.25,40,CLOTHING
+10000,apple,nose,1.0,132,FRESH_FOOD
+20002,Bananas,Tropical fruit,0.5,190,FRESH_FOOD
