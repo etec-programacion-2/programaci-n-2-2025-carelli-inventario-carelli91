@@ -3,13 +3,13 @@
 10003,Vitamin C,Immune system supplement,12.75,30,PHARMACY
 10004,Bandages,Wound care protection,3.2,118,PHARMACY
 10005,Cough Syrup,Relieves dry cough,9.8,25,PHARMACY
-10007,Allergy Pills,Seasonal allergy relief,15.3,33,PHARMACY
+10007,Allergy Pills,Seasonal allergy relief,15.3,21,PHARMACY
 20001,Apples,Red fresh fruit,1.2,145,FRESH_FOOD
-20003,Lettuce,Fresh green vegetable,1.5,80,FRESH_FOOD
-20004,Tomatoes,Red juicy vegetable,1.8,95,FRESH_FOOD
-20005,Carrots,Orange root vegetable,1.1,110,FRESH_FOOD
-20006,Broccoli,Green healthy vegetable,2.25,65,FRESH_FOOD
-20007,Strawberries,Sweet red berries,3.5,40,FRESH_FOOD
+20003,Lettuce,Fresh green vegetable,1.5,68,FRESH_FOOD
+20004,Tomatoes,Red juicy vegetable,1.8,94,FRESH_FOOD
+20005,Carrots,Orange root vegetable,1.1,96,FRESH_FOOD
+20006,Broccoli,Green healthy vegetable,2.25,62,FRESH_FOOD
+20007,Strawberries,Sweet red berries,3.5,36,FRESH_FOOD
 20008,Grapes,Small sweet fruits,2.8,55,FRESH_FOOD
 20009,Oranges,Citrus fruit vitamin C,1.65,75,FRESH_FOOD
 20010,Avocados,Healthy green fruit,2.95,45,FRESH_FOOD
@@ -96,5 +96,5 @@
 95004,Baseball Cap,Adjustable cap,8.75,45,CLOTHING
 95005,Winter Gloves,Warm protection,5.5,60,CLOTHING
 95006,Scarf,Winter wool scarf,9.25,40,CLOTHING
-10000,apple,nose,1.0,132,FRESH_FOOD
-20002,Bananas,Tropical fruit,0.5,190,FRESH_FOOD
+20002,Bananas,Tropical fruit,0.5,189,FRESH_FOOD
+10000,Apple,Fresh Apple,1.2,130,OTHERS
