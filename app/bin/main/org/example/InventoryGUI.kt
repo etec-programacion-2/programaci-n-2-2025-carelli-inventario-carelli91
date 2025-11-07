@@ -1,8 +1,6 @@
 package org.example
 
 import java.awt.*
-import java.awt.event.ActionEvent
-import java.awt.event.ActionListener
 import javax.swing.*
 import javax.swing.border.EmptyBorder
 import javax.swing.event.ListSelectionListener
@@ -40,8 +38,8 @@ class InventoryGUI(private val inventory: InventoryRepository) {
         // North Panel (Search, Sort, Filter)
         frame.add(createControlPanel(), BorderLayout.NORTH)
 
-        // Center Panel (Product List)
-        list.cellRenderer = ProductRenderer() 
+        // Center Panel (Product List) - usando custom renderer
+        list.cellRenderer = createProductRenderer()
         frame.add(JScrollPane(list), BorderLayout.CENTER)
 
         // South Panel (Action Buttons)
@@ -56,8 +54,14 @@ class InventoryGUI(private val inventory: InventoryRepository) {
         increaseStockBtn.addActionListener { adjustStock(true) }
         decreaseStockBtn.addActionListener { adjustStock(false) }
         
-        // Listeners that trigger the list refresh
-        searchField.document.addDocumentListener(SimpleDocumentListener { applySortAndFilter() })
+        // Document listener usando lambda
+        val documentListener = object : javax.swing.event.DocumentListener {
+            override fun insertUpdate(e: javax.swing.event.DocumentEvent?) = applySortAndFilter()
+            override fun removeUpdate(e: javax.swing.event.DocumentEvent?) = applySortAndFilter()
+            override fun changedUpdate(e: javax.swing.event.DocumentEvent?) = applySortAndFilter()
+        }
+        searchField.document.addDocumentListener(documentListener)
+        
         sortComboBox.addActionListener { applySortAndFilter() }
         filterComboBox.addActionListener { applySortAndFilter() }
 
@@ -118,6 +122,68 @@ class InventoryGUI(private val inventory: InventoryRepository) {
         return buttonPanel
     }
     
+    // --- Custom Renderer Creation (sin usar clase interna) ---
+    
+    private fun createProductRenderer(): ListCellRenderer<Products> {
+        return ListCellRenderer { list, value, index, isSelected, cellHasFocus ->
+            val panel = JPanel(BorderLayout())
+            val infoPanel = JPanel(GridLayout(1, 5, 15, 0))
+            
+            val idLabel = JLabel()
+            val nameDescPanel = JPanel()
+            val nameLabel = JLabel()
+            val descLabel = JLabel()
+            val stockLabel = JLabel()
+            val priceLabel = JLabel()
+            val categoryLabel = JLabel()
+            
+            // Setup
+            infoPanel.isOpaque = false
+            nameDescPanel.layout = BoxLayout(nameDescPanel, BoxLayout.Y_AXIS)
+            nameDescPanel.isOpaque = false
+            nameDescPanel.add(nameLabel)
+            nameDescPanel.add(descLabel)
+            
+            idLabel.font = Font("Monospaced", Font.BOLD, 12)
+            nameLabel.font = Font("SansSerif", Font.BOLD, 14)
+            descLabel.font = Font("SansSerif", Font.ITALIC, 11)
+            priceLabel.horizontalAlignment = SwingConstants.RIGHT
+            categoryLabel.horizontalAlignment = SwingConstants.LEFT
+            
+            infoPanel.add(idLabel)
+            infoPanel.add(nameDescPanel)
+            infoPanel.add(priceLabel)
+            infoPanel.add(stockLabel)
+            infoPanel.add(categoryLabel)
+            
+            panel.add(infoPanel, BorderLayout.CENTER)
+            panel.border = BorderFactory.createEmptyBorder(8, 10, 8, 10)
+            
+            // Set values
+            value?.let { p ->
+                idLabel.text = "ID: ${p.id}"
+                nameLabel.text = p.name
+                descLabel.text = "<html><i>${p.desc.take(40)}${if (p.desc.length > 40) "..." else ""}</i></html>"
+                priceLabel.text = "$${String.format("%.2f", p.price)}"
+                stockLabel.text = "Stock: ${p.stock}"
+                categoryLabel.text = p.category.toString()
+                
+                stockLabel.foreground = when {
+                    p.stock == 0 -> Color(200, 0, 0)
+                    p.stock < 5 -> Color(255, 140, 0)
+                    else -> Color.BLACK
+                }
+            }
+            
+            panel.background = if (isSelected) Color(173, 216, 230) else Color.WHITE
+            panel.isOpaque = true
+            infoPanel.background = panel.background
+            nameDescPanel.background = panel.background
+            
+            panel
+        }
+    }
+    
     // --- Data Management & Display ---
 
     private fun refresh(products: List<Products>? = null) {
@@ -130,42 +196,33 @@ class InventoryGUI(private val inventory: InventoryRepository) {
         viewCartBtn.text = "🛒 View Cart (${cart.getTotalItems()})"
     }
 
-    /**
-     * **FIXED:** This function now correctly applies filters *first*,
-     * and *then* sorts the resulting list.
-     */
     private fun applySortAndFilter() {
         val sortParam = sortComboBox.selectedItem as String
         val selectedCategoryName = filterComboBox.selectedItem as String
         val query = searchField.text.trim()
 
-        // 1. Start with the full inventory list
         var currentList: List<Products> = inventory.getAllProducts()
 
-        // 2. Apply Search Filter (if any)
         if (query.isNotBlank()) {
             currentList = currentList.filter { 
                 it.name.contains(query, ignoreCase = true) || it.desc.contains(query, ignoreCase = true) 
             }
         }
 
-        // 3. Apply Category Filter (if not "Show All")
         if (selectedCategoryName != "Show All") {
             val category = Category.values().first { it.displayName == selectedCategoryName }
             currentList = currentList.filter { it.category == category }
         }
         
-        // 4. FIX: Apply Sort *only* to the filtered list
         val sortedList = when (sortParam.lowercase()) {
             "id" -> currentList.sortedBy { it.id }
             "name" -> currentList.sortedBy { it.name }
             "price" -> currentList.sortedBy { it.price }
             "stock" -> currentList.sortedBy { it.stock }
             "category" -> currentList.sortedBy { it.category.displayName }
-            else -> currentList // No sorting if parameter is unknown
+            else -> currentList
         }
 
-        // 5. Refresh the JList with the final list
         refresh(sortedList)
     }
 
@@ -200,7 +257,7 @@ class InventoryGUI(private val inventory: InventoryRepository) {
             }
 
             inventory.updateProduct(productToUpdate)
-            applySortAndFilter() // Refresh list to show updated stock and maintain filters
+            applySortAndFilter()
             JOptionPane.showMessageDialog(frame, "Stock for ${selected.name} successfully ${action}d by $quantity.", "Success", JOptionPane.INFORMATION_MESSAGE)
         } catch (e: IllegalArgumentException) {
             JOptionPane.showMessageDialog(frame, "Stock Error: ${e.message}", "Error", JOptionPane.ERROR_MESSAGE)
@@ -229,11 +286,10 @@ class InventoryGUI(private val inventory: InventoryRepository) {
         }
     }
 
-    // Uses JTextArea in JScrollPane to prevent menu deformation
     private fun editProductUnifiedDialog() {
         val selected = list.selectedValue ?: return
 
-        val nameField = JTextField(selected.name).apply { isEditable = false } // BLOCKED EDITING
+        val nameField = JTextField(selected.name).apply { isEditable = false }
         val priceField = JTextField(selected.price.toString())
         val stockField = JTextField(selected.stock.toString()).apply { isEditable = false } 
         
@@ -355,76 +411,6 @@ class InventoryGUI(private val inventory: InventoryRepository) {
             } catch (e: Exception) {
                 JOptionPane.showMessageDialog(frame, "Checkout Error: ${e.message}")
             }
-        }
-    }
-
-    // --- Helper Classes ---
-
-    // Used to listen to key strokes for immediate search update
-    private class SimpleDocumentListener(private val onChange: () -> Unit) : javax.swing.event.DocumentListener {
-        override fun insertUpdate(e: javax.swing.event.DocumentEvent?) = onChange()
-        override fun removeUpdate(e: javax.swing.event.DocumentEvent?) = onChange()
-        override fun changedUpdate(e: javax.swing.event.DocumentEvent?) = onChange()
-    }
-
-    // Enhanced Product List Renderer
-    private class ProductRenderer : JPanel(), ListCellRenderer<Products> {
-        private val infoPanel = JPanel(GridLayout(1, 5, 15, 0)) 
-        private val idLabel = JLabel()
-        private val nameDescPanel = JPanel() 
-        private val nameLabel = JLabel()
-        private val descLabel = JLabel()
-        private val stockLabel = JLabel()
-        private val priceLabel = JLabel()
-        private val categoryLabel = JLabel()
-
-        init {
-            layout = BorderLayout()
-            infoPanel.isOpaque = false 
-            
-            nameDescPanel.layout = BoxLayout(nameDescPanel, BoxLayout.Y_AXIS) 
-            nameDescPanel.isOpaque = false
-            nameDescPanel.add(nameLabel)
-            nameDescPanel.add(descLabel)
-
-            idLabel.font = Font("Monospaced", Font.BOLD, 12)
-            nameLabel.font = Font("SansSerif", Font.BOLD, 14)
-            descLabel.font = Font("SansSerif", Font.ITALIC, 11)
-            priceLabel.horizontalAlignment = SwingConstants.RIGHT
-            categoryLabel.horizontalAlignment = SwingConstants.LEFT
-            
-            infoPanel.add(idLabel)
-            infoPanel.add(nameDescPanel)
-            infoPanel.add(priceLabel)
-            infoPanel.add(stockLabel)
-            infoPanel.add(categoryLabel)
-            
-            add(infoPanel, BorderLayout.CENTER)
-            border = BorderFactory.createEmptyBorder(8, 10, 8, 10) 
-        }
-
-        override fun getListCellRendererComponent(list: JList<out Products>?, value: Products?, index: Int, isSelected: Boolean, cellHasFocus: Boolean): Component {
-            value?.let { p ->
-                idLabel.text = "ID: ${p.id}"
-                nameLabel.text = p.name
-                descLabel.text = "<html><i>${p.desc.take(40)}${if (p.desc.length > 40) "..." else ""}</i></html>"
-                priceLabel.text = "$${String.format("%.2f", p.price)}"
-                stockLabel.text = "Stock: ${p.stock}"
-                categoryLabel.text = p.category.toString()
-
-                stockLabel.foreground = when {
-                    p.stock == 0 -> Color(200, 0, 0) 
-                    p.stock < 5 -> Color(255, 140, 0) 
-                    else -> Color.BLACK
-                }
-            }
-
-            background = if (isSelected) Color(173, 216, 230) else Color.WHITE
-            isOpaque = true
-            infoPanel.background = background
-            nameDescPanel.background = background
-
-            return this
         }
     }
 }
