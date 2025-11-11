@@ -2,6 +2,7 @@ package org.example
 
 import java.io.File
 
+// Interface del repositorio de inventario (Principio de Inversión de Dependencias)
 interface InventoryRepository {
     fun addProduct(product: Products)
     fun removeProductById(id: Int): Boolean
@@ -16,31 +17,38 @@ interface InventoryRepository {
     fun isProductNameExists(name: String): Boolean
 }
 
+// Implementación del repositorio de inventario con persistencia en archivo
 class Inventory : InventoryRepository {
+    // Almacenamiento en memoria
     private val products = mutableMapOf<Int, Products>()
     private val fileName = "products.txt"
 
     init {
-        loadFromFile()
+        loadFromFile() // Cargar productos al iniciar
     }
 
+    // Agrega un producto al inventario
     override fun addProduct(product: Products) {
-        if (products.containsKey(product.id)) throw IllegalArgumentException("Product ID already exists.")
-        if (isProductNameExists(product.name)) throw IllegalArgumentException("Product name already exists.")
+        require(!products.containsKey(product.id)) { "Product ID already exists." }
+        require(!isProductNameExists(product.name)) { "Product name already exists." }
         products[product.id] = product
         saveToFile()
     }
 
+    // Elimina un producto por ID
     override fun removeProductById(id: Int): Boolean {
         val removed = products.remove(id)
-        if (removed != null) saveToFile()
+        removed?.let { saveToFile() }
         return removed != null
     }
 
+    // Obtiene un producto por ID
     override fun getProductById(id: Int): Products? = products[id]
 
+    // Obtiene todos los productos ordenados por ID
     override fun getAllProducts(): List<Products> = products.values.sortedBy { it.id }
 
+    // Busca productos por nombre o descripción
     override fun searchProducts(query: String): List<Products> {
         val q = query.lowercase()
         return products.values.filter {
@@ -48,6 +56,7 @@ class Inventory : InventoryRepository {
         }
     }
 
+    // Ordena productos según el parámetro especificado
     override fun sortProductsBy(parameter: String, ascending: Boolean): List<Products> {
         val sorted = when (parameter.lowercase()) {
             "id" -> products.values.sortedBy { it.id }
@@ -57,38 +66,42 @@ class Inventory : InventoryRepository {
             "category" -> products.values.sortedBy { it.category.displayName }
             else -> products.values.toList()
         }
-        return if (ascending) sorted else sorted.reversed()
+        return when {
+            ascending -> sorted
+            else -> sorted.reversed()
+        }
     }
 
+    // Ordena productos agrupados por categoría
     override fun sortProductsByCategory(ascending: Boolean): List<Products> {
         val grouped = products.values.groupBy { it.category.displayName }
-        val order = if (ascending) grouped.keys.sorted() else grouped.keys.sortedDescending()
+        val order = when {
+            ascending -> grouped.keys.sorted()
+            else -> grouped.keys.sortedDescending()
+        }
         return order.flatMap { grouped[it] ?: emptyList() }
     }
 
-    override fun filterByCategory(category: Category): List<Products> {
-        return products.values.filter { it.category == category }
-    }
+    // Filtra productos por categoría
+    override fun filterByCategory(category: Category): List<Products> =
+        products.values.filter { it.category == category }
 
+    // Actualiza un producto existente
     override fun updateProduct(product: Products) {
-        if (!products.containsKey(product.id)) throw IllegalArgumentException("Product not found.")
+        require(products.containsKey(product.id)) { "Product not found." }
         products[product.id] = product
         saveToFile()
     }
 
-    override fun generateNewProductId(): Int {
-        var id = 10000
-        while (id <= 99999) {
-            if (!products.containsKey(id)) return id
-            id++
-        }
-        return 99999
-    }
+    // Genera un ID único para un nuevo producto
+    override fun generateNewProductId(): Int =
+        (10000..99999).firstOrNull { !products.containsKey(it) } ?: 99999
 
-    override fun isProductNameExists(name: String): Boolean {
-        return products.values.any { it.name.equals(name, ignoreCase = true) }
-    }
+    // Verifica si ya existe un producto con el nombre dado
+    override fun isProductNameExists(name: String): Boolean =
+        products.values.any { it.name.equals(name, ignoreCase = true) }
 
+    // Guarda todos los productos en archivo
     private fun saveToFile() {
         File(fileName).printWriter().use { out ->
             products.values.forEach {
@@ -97,21 +110,26 @@ class Inventory : InventoryRepository {
         }
     }
 
+    // Carga productos desde archivo
     private fun loadFromFile() {
         val file = File(fileName)
-        if (!file.exists()) return
-        file.forEachLine { line ->
-            val parts = line.split(",")
-            if (parts.size == 6) {
-                val p = Products(
-                    id = parts[0].toInt(),
-                    name = parts[1],
-                    desc = parts[2],
-                    price = parts[3].toDouble(),
-                    stock = parts[4].toInt(),
-                    category = Category.valueOf(parts[5])
-                )
-                products[p.id] = p
+        when {
+            !file.exists() -> return
+            else -> file.forEachLine { line ->
+                val parts = line.split(",")
+                when {
+                    parts.size == 6 -> {
+                        val p = Products(
+                            id = parts[0].toInt(),
+                            name = parts[1],
+                            desc = parts[2],
+                            price = parts[3].toDouble(),
+                            stock = parts[4].toInt(),
+                            category = Category.valueOf(parts[5])
+                        )
+                        products[p.id] = p
+                    }
+                }
             }
         }
     }

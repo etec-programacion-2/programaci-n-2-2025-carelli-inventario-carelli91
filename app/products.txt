@@ -1,9 +1,9 @@
 10001,Ibuprofen,For pain and fever relief,8.5,45,PHARMACY
 10002,Paracetamol,Pain and fever relief,5.25,60,PHARMACY
 10003,Vitamin C,Immune system supplement,12.75,30,PHARMACY
-10004,Bandages,Wound care protection,3.2,118,PHARMACY
-10005,Cough Syrup,Relieves dry cough,9.8,25,PHARMACY
-10007,Allergy Pills,Seasonal allergy relief,15.3,21,PHARMACY
+10004,Bandages,Wound care protection,3.2,97,PHARMACY
+10005,Cough Syrup,Relieves dry cough,9.8,24,PHARMACY
+10007,Allergy Pills,Seasonal allergy relief,15.3,30,PHARMACY
 20001,Apples,Red fresh fruit,1.2,145,FRESH_FOOD
 20003,Lettuce,Fresh green vegetable,1.5,68,FRESH_FOOD
 20004,Tomatoes,Red juicy vegetable,1.8,94,FRESH_FOOD
@@ -15,7 +15,6 @@
 20010,Avocados,Healthy green fruit,2.95,45,FRESH_FOOD
 30001,Canned Beans,Ready to eat beans,1.75,85,NON_PERISHABLE_FOOD
 30002,Pasta,Italian wheat pasta,1.25,120,NON_PERISHABLE_FOOD
-30003,Rice,Long grain white rice,2.5,75,NON_PERISHABLE_FOOD
 30004,Canned Soup,Chicken noodle soup,2.25,60,NON_PERISHABLE_FOOD
 30005,Cereal,Breakfast corn flakes,3.75,45,NON_PERISHABLE_FOOD
 30006,Cookies,Chocolate chip cookies,2.95,70,NON_PERISHABLE_FOOD
