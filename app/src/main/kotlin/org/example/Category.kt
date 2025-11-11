@@ -3,7 +3,7 @@
  */
 package org.example
 
-
+// Categorías de productos con nombre y emoji
 enum class Category(val displayName: String, val emoji: String) {
     FRESH_FOOD("Fresh Food", "🥦"),
     NON_PERISHABLE_FOOD("Non-Perishable Food", "🥫"),
@@ -21,5 +21,6 @@ enum class Category(val displayName: String, val emoji: String) {
     PHARMACY("Pharmacy & Health", "💊"),
     OTHERS("Others", "➕");
 
+    // Representación en texto con emoji y nombre
     override fun toString(): String = "$emoji $displayName"
 }
